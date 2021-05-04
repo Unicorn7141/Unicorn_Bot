@@ -10,7 +10,7 @@
 - [ ] lmgtfy (I just have to)
 
 ## Utility Commands
-- [ ] prefix
+- [ ] prefix set/view
 
 ## Informative Commands
 - [ ] user info
