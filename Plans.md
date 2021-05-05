@@ -18,5 +18,4 @@
 
 # Overall functionality
 
-~~- [ ] slash commands (not sure yet)
 - [ ] modmail (not sure yet)
