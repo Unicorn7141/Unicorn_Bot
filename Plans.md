@@ -9,7 +9,7 @@
 |             | ban          | Ban a member from the server        | `null`    | ban <member> [reason]   | `!ban @someone toxic behavior`       | ✖️      |
 |             | prefix       | Show/set the server's prefix        | `null`    | prefix [prefix]         | `!prefix`, `!prefix $`               | ✖️      |
 |             | unban        | Unban a member from the server      | `null`    | unban <member> [reason] | `!unban @someone you're forgiven`    | ✖️      |
-|             | modmail      | A modmail chat for reports and such | `null`    | `nulll`                 | `null`                               | ✖️      |
+|             | modmail      | A modmail chat for reports and such | `null`    | `null`                 | `null`                               | ✖️      |
 
 - ✔️ => Done
 - ✖️ => Not done yet :pensive:
