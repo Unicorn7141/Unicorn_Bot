@@ -11,5 +11,5 @@
 |             | unban        | Unban a member from the server      | `null`    | unban <member> [reason] | `!unban @someone you're forgiven`    | ✖️      |
 |             | modmail      | A modmail chat for reports and such | `null`    | `nulll`                 | `null`                               | ✖️      |
 
-- &#9745; => Done
-- &#9744; => Not done yet :pensive:
+- ✔️ => Done
+- ✖️ => Not done yet :pensive:
