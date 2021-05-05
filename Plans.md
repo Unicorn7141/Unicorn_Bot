@@ -17,5 +17,6 @@
 - [ ] server info
 
 # Overall functionality
-- [ ] slash commands (not sure yet)
+
+~~- [ ] slash commands (not sure yet)
 - [ ] modmail (not sure yet)
