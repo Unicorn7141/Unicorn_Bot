@@ -9,6 +9,7 @@ import dev.kord.core.behavior.reply
 import dev.kord.core.sorted
 import io.ktor.client.*
 import io.ktor.client.engine.java.*
+import io.ktor.client.features.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.request.*
@@ -51,8 +52,8 @@ class FunCommands(bot: ExtensibleBot): Extension(bot) {
         }
         // google command
         command(::GoogleArgs) {
-            name = "google"
-            aliases = arrayOf("lmgtfy", "g")
+            name = "lmgtfy"
+            aliases = arrayOf("google", "g")
             description = "Let people know how to google stuff, by giving them an example"
 
             action {
@@ -147,6 +148,10 @@ suspend fun callFoxAPI(client: HttpClient): String {
 }
 
 suspend fun callDogAPI(client: HttpClient): String {
-    val response = client.get<JsonElement>("https://dog.ceo/api/breeds/image/random")
-    return response.jsonObject["message"]?.jsonPrimitive?.content ?: "https://apple.co/2RveQ5W"
+    return try {
+        val response = client.get<JsonElement>("https://dog.ceo/api/breeds/image/random")
+        response.jsonObject["message"]?.jsonPrimitive?.content ?: "https://apple.co/2RveQ5W"
+    } catch (e: ClientRequestException) {
+        "https://apple.co/2RveQ5W"
+    }
 }
