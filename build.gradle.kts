@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.unicorn"
-version = "1.0"
+version = "1.1"
 
 repositories {
     mavenCentral()
@@ -14,7 +14,6 @@ repositories {
         name = "Kotlin Discord"
         url = uri("https://maven.kotlindiscord.com/repository/maven-public/")
     }
-
 }
 
 val exposedVersion: String by project
@@ -28,7 +27,8 @@ dependencies {
     implementation("org.jetbrains.exposed", "exposed-jdbc", "0.31.1")
     implementation("org.xerial:sqlite-jdbc:3.30.1")
     implementation(kotlin("script-runtime"))
-
+    implementation(kotlin("stdlib-jdk8"))
+    implementation("io.ktor:ktor-client-java:1.5.4")
 }
 
 tasks.test {

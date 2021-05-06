@@ -3,16 +3,20 @@ import com.kotlindiscord.kord.extensions.commands.converters.coalescedString
 import com.kotlindiscord.kord.extensions.commands.converters.optionalMember
 import com.kotlindiscord.kord.extensions.commands.parser.Arguments
 import com.kotlindiscord.kord.extensions.extensions.Extension
-import com.kotlindiscord.kord.extensions.utils.ensureWebhook
 import dev.kord.common.Color
-import dev.kord.core.behavior.GuildApplicationCommandBehavior
-import dev.kord.core.behavior.WebhookBehavior
-import dev.kord.core.behavior.channel.GuildMessageChannelBehavior
 import dev.kord.core.behavior.channel.createEmbed
-import dev.kord.core.behavior.execute
-import dev.kord.core.entity.channel.GuildMessageChannel
+import dev.kord.core.behavior.reply
 import dev.kord.core.sorted
+import io.ktor.client.*
+import io.ktor.client.engine.java.*
+import io.ktor.client.features.json.*
+import io.ktor.client.features.json.serializer.*
+import io.ktor.client.request.*
 import kotlinx.coroutines.flow.toList
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 class FunCommands(bot: ExtensibleBot): Extension(bot) {
     override val name = "Fun Commands"
@@ -65,6 +69,84 @@ class FunCommands(bot: ExtensibleBot): Extension(bot) {
                 }
             }
         }
-    }
+        // random cat
+        command {
+            name = "cat"
+            aliases = arrayOf("kitty")
+            description = "Get a random cat"
 
+            action {
+                val roles = event.member?.roles?.sorted()?.toList()
+                val _color = roles?.reversed()?.firstOrNull { it.color.rgb != 0 }?.color ?: Color(7506394)
+                message.reply {
+                    allowedMentions()
+                    embed {
+                        title = "Look at this cutie"
+                        image = callCatAPI(client)
+                        color = _color
+                    }
+                }
+            }
+        }
+        // random dog
+        command {
+            name = "dog"
+            aliases = arrayOf("doggo")
+            description = "Get a random doggo"
+
+            action {
+                val roles = event.member?.roles?.sorted()?.toList()
+                val _color = roles?.reversed()?.firstOrNull { it.color.rgb != 0 }?.color ?: Color(7506394)
+                message.reply {
+                    allowedMentions()
+                    embed {
+                        title = "This doggo so cuteeeeee"
+                        image = callDogAPI(client)
+                        color = _color
+                    }
+                }
+            }
+        }
+        // random fox
+        command {
+            name = "fox"
+            aliases = arrayOf("foxy")
+            description = "Get a random fox"
+
+            action {
+                val roles = event.member?.roles?.sorted()?.toList()
+                val _color = roles?.reversed()?.firstOrNull { it.color.rgb != 0 }?.color ?: Color(7506394)
+                message.reply {
+                    allowedMentions()
+                    embed {
+                        title = "Look at this \uD83E\uDD7A"
+                        image = callFoxAPI(client)
+                        color = _color
+                    }
+                }
+            }
+        }
+    }
+}
+
+val client = HttpClient(Java) {
+    install(JsonFeature) {
+        serializer = KotlinxSerializer()
+    }
+}
+
+
+suspend fun callCatAPI(client: HttpClient): String {
+    val response = client.get<JsonElement>("https://api.thecatapi.com/v1/images/search")
+    return response.jsonArray[0].jsonObject["url"]?.jsonPrimitive?.content ?: "https://apple.co/2RveQ5W"
+}
+
+suspend fun callFoxAPI(client: HttpClient): String {
+    val response = client.get<JsonElement>("https://randomfox.ca/floof")
+    return response.jsonObject["image"]?.jsonPrimitive?.content ?: "https://apple.co/2RveQ5W"
+}
+
+suspend fun callDogAPI(client: HttpClient): String {
+    val response = client.get<JsonElement>("https://dog.ceo/api/breeds/image/random")
+    return response.jsonObject["message"]?.jsonPrimitive?.content ?: "https://apple.co/2RveQ5W"
 }
