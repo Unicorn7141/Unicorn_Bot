@@ -247,16 +247,3 @@ suspend fun callLyricsAPI(client: HttpClient, song: String): Map<String, String>
 
     }
 }
-
-fun buildPages(words: Collection<String>): ArrayList<String> {
-    val pages = arrayListOf<String>()
-    var builder = StringBuilder()
-    for (word in words) {
-        if (builder.length + word.length >= 2000) {
-            pages.add(builder.toString())
-            builder = StringBuilder()
-        }
-        builder.append(" $word")
-    }
-    return pages
-}
