@@ -2,9 +2,10 @@
 | ----------- | ------------ | ----------------------------------- | --------- | ----------------------- | ------------------------------------ | ------- |
 | Informative | serverinfo   | Shows info about the server         | si        | serverinfo              | `!serverinfo`, `!si`                 | ✖️      |
 |             | userinfo     | Shows info about a member           | ui        | userinfo [member]       | `!ui @someone`, `!ui`                | ✖️      |
-| Fun         | say          | Repeats your message                | echo      | say <message>           | `!say hello`                         | ✔️️     |
-|             | 8ball        | Answers yes/no questions            | 8, ball   | 8ball <question>        | `!8ball am I great?`                 | ✖️      |
-|             | lmgtfy       | Show people how to use google       | g, google | google [member] <query> | `!lmgtfy @someone how to use google` | ✔️️     |
+|             | ping         | Shows the bot's ping                | `null`    | ping                    | `!ping`                              | ✖️      |
+| Fun         | say          | Repeats your message                | echo      | say <message>           | `!say hello`                         | ✔️️      |
+|             | 8ball        | Answers yes/no questions            | 8, ball   | 8ball <question>        | `!8ball am I great?`                 | ✔️      |
+|             | lmgtfy       | Show people how to use google       | g, google | google [member] <query> | `!lmgtfy @someone how to use google` | ✔️️      |
 |             | cat          | Get a cute cat pic/gif              | `null`    | `cat`                   | `!cat`                               | ✔️      |
 |             | dog          | Get a cute doggo pic/gif            | doggo     | `dog`                   | `!dog`                               | ✔️      |
 |             | fox          | Get an adorable fox pic/gif         | foxy      | `fox`                   | `!fox`                               | ✔️      |
