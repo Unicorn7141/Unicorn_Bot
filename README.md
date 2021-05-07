@@ -23,7 +23,7 @@ Being completely honest, I don't know that myself....but hopefully something dec
 |             | dog          | Get a cute doggo pic/gif                        | doggo       | `dog`                    | `!dog`                               | ✔️      |
 |             | fox          | Get an adorable fox pic/gif                     | foxy        | `fox`                    | `!fox`                               | ✔️      |
 |             | lyrics       | Get lyrics to a song                            | `null`      | `lyrics <song> [artist]` | `!lyrics november rain`              | ✔️      |
-|             | getlyrics    | Get lyrics to the song you're currently playing | `glyrics`   | `glyrics`                | `!glyrics`                           | ✔️      |
+|             | getlyrics    | Get lyrics to the song you're currently playing | glyrics     | `glyrics`                | `!glyrics`                           | ✔️      |
 | Moderation  | kick         | Kick a member from the server                   | `null`      | kick <member> [reason]   | `!kick @someone toxic behavior`      | ✖️      |
 |             | ban          | Ban a member from the server                    | `null`      | ban <member> [reason]    | `!ban @someone toxic behavior`       | ✖️      |
 |             | prefix       | Show/set the server's prefix                    | `null`      | prefix [prefix]          | `!prefix`, `!prefix $`               | ✖️      |
