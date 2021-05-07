@@ -1,4 +1,5 @@
 import com.kotlindiscord.kord.extensions.ExtensibleBot
+import com.kotlindiscord.kord.extensions.checks.hasPermission
 import com.kotlindiscord.kord.extensions.commands.converters.coalescedString
 import com.kotlindiscord.kord.extensions.commands.converters.optionalMember
 import com.kotlindiscord.kord.extensions.commands.parser.Arguments
@@ -7,9 +8,12 @@ import com.kotlindiscord.kord.extensions.pagination.Paginator
 import com.kotlindiscord.kord.extensions.pagination.pages.Page
 import com.kotlindiscord.kord.extensions.pagination.pages.Pages
 import dev.kord.common.Color
+import dev.kord.common.entity.Permission
 import dev.kord.core.behavior.channel.createEmbed
 import dev.kord.core.behavior.reply
+import dev.kord.core.entity.Member
 import dev.kord.core.sorted
+import dev.kord.rest.request.KtorRequestException
 import io.ktor.client.*
 import io.ktor.client.engine.java.*
 import io.ktor.client.features.*
@@ -26,18 +30,25 @@ class FunCommands(bot: ExtensibleBot): Extension(bot) {
     override val name = "Fun Commands"
 
     /* Arguments Section */
-    class SayArgs: Arguments() {
+    class SayArgs : Arguments() {
         val quote by coalescedString("quote", "Whatever it is you want me to say")
     }
-    class GoogleArgs: Arguments() {
+
+    class GoogleArgs : Arguments() {
         val member by optionalMember("member", "Who would you like to google for?")
         val query by coalescedString("query", "A query to google")
     }
-    class BallArgs: Arguments() {
+
+    class BallArgs : Arguments() {
         val question by coalescedString("question", "A `yes` or `no` question you want me to answer")
     }
-    class LyricsArgs: Arguments() {
-        val song by coalescedString("song", "The song you'd like getting lyrics for")
+
+    class LyricsArgs : Arguments() {
+        val song by coalescedString("song - author", "The song you'd like getting lyrics for")
+    }
+
+    class SongArgs : Arguments() {
+        val member by optionalMember("member", "A member to get data about")
     }
 
     /* Commands Section */
@@ -177,31 +188,115 @@ class FunCommands(bot: ExtensibleBot): Extension(bot) {
                 val _color = roles?.reversed()?.firstOrNull { it.color.rgb != 0 }?.color ?: Color(7506394)
                 val song = callLyricsAPI(client, arguments.song)
                 val pages = Pages()
-                val songLyrics = song["lyrics"]?.split(" ")
+                val songLyrics = song["lyrics"]?.split(" ")?.chunked(100)?.map { it.joinToString(" ") }
                 val lyrics = mutableListOf("")
-                if (songLyrics != null) {
-                    for (word in songLyrics) {
-                        if ((lyrics.last() + " $word").length <= 2000) {
-                            lyrics[lyrics.lastIndex] += " $word"
-                        } else {
-                            lyrics.add(word)
+                try {
+                    if (songLyrics != null) {
+                        for (word in songLyrics) {
+                            if ((lyrics.last() + word).length <= 2000) {
+                                lyrics[lyrics.lastIndex] += " $word\n\n"
+                            } else {
+                                lyrics.add("\n\n$word")
+                            }
+                        }
+                        for (page in lyrics.joinToString("\n\n|").split("|")) {
+                            pages.addPage(
+                                Page(
+                                    description = page,
+                                    title = song["title"],
+                                    author = song["author"],
+                                    color = _color
+                                )
+                            )
+                        }
+                        Paginator(bot, pages, message.channel, keepEmbed = true).send()
+                    } else {
+                        message.reply {
+                            allowedMentions()
+                            content = "Song could not be found"
                         }
                     }
-                    for (page in lyrics) {
-                        pages.addPage(
-                            Page(
-                                description = page,
-                                title = song["title"],
-                                author = song["author"],
-                                color = _color
-                            )
-                        )
+                } catch (e: Exception) {
+                    when (e) {
+                        is ServerResponseException -> {
+                            message.reply {
+                                allowedMentions()
+                                content = "Song could not be found"
+                            }
+                        }
+                        is KtorRequestException -> {
+                            println(lyrics.map { it.length }.joinToString(" | "))
+                            message.reply {
+                                allowedMentions()
+                                content = "A formatting error occurred...."
+                            }
+                        }
                     }
-                    Paginator(bot, pages, message.channel, keepEmbed = true).send()
+                }
+            }
+        }
+        // get lyrics
+        command() {
+            name = "getlyrics"
+            aliases = arrayOf("glyrics")
+            description = "Get lyrics for the song you're currently playing"
+
+            action {
+                val playingSong = getSong(message.getAuthorAsMember()!!)
+                if (playingSong != null) {
+                    val roles = event.member?.roles?.sorted()?.toList()
+                    val _color = roles?.reversed()?.firstOrNull { it.color.rgb != 0 }?.color ?: Color(7506394)
+                    val song = callLyricsAPI(client, playingSong)
+                    val pages = Pages()
+                    val songLyrics = song["lyrics"]?.split(" ")?.chunked(100)?.map { it.joinToString(" ") }
+                    val lyrics = mutableListOf("")
+                    try {
+                        if (songLyrics != null) {
+                            for (word in songLyrics) {
+                                if ((lyrics.last() + word).length <= 2000) {
+                                    lyrics[lyrics.lastIndex] += " $word\n\n"
+                                } else {
+                                    lyrics.add("\n\n$word")
+                                }
+                            }
+                            for (page in lyrics.joinToString("\n\n|").split("|")) {
+                                pages.addPage(
+                                    Page(
+                                        description = page,
+                                        title = song["title"],
+                                        author = song["author"],
+                                        color = _color
+                                    )
+                                )
+                            }
+                            Paginator(bot, pages, message.channel, keepEmbed = true).send()
+                        } else {
+                            message.reply {
+                                allowedMentions()
+                                content = "Song could not be found"
+                            }
+                        }
+                    } catch (e: Exception) {
+                        when (e) {
+                            is ServerResponseException -> {
+                                message.reply {
+                                    allowedMentions()
+                                    content = "Song could not be found"
+                                }
+                            }
+                            is KtorRequestException -> {
+                                println(lyrics.map { it.length }.joinToString(" | "))
+                                message.reply {
+                                    allowedMentions()
+                                    content = "A formatting error occurred...."
+                                }
+                            }
+                        }
+                    }
                 } else {
                     message.reply {
                         allowedMentions()
-                        content = "Song could not be found"
+                        content = "You're not playing any music \uD83D\uDE15"
                     }
                 }
             }
@@ -259,4 +354,12 @@ fun buildPages(words: Collection<String>): ArrayList<String> {
         builder.append(" $word")
     }
     return pages
+}
+
+suspend fun getSong(member: Member): String? {
+    return if (member.getPresenceOrNull()?.data?.activities?.map { it.party.value?.id?.value }.toString() == "[spotify:${member.id.asString}") {
+        member.getPresenceOrNull()?.data?.activities?.joinToString("\n") { "${it.details.value} ${it.state.value}" }
+    } else {
+        null
+    }
 }
