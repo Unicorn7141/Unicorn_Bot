@@ -9,6 +9,7 @@
 |             | cat          | Get a cute cat pic/gif              | `null`    | `cat`                   | `!cat`                               | ✔️      |
 |             | dog          | Get a cute doggo pic/gif            | doggo     | `dog`                   | `!dog`                               | ✔️      |
 |             | fox          | Get an adorable fox pic/gif         | foxy      | `fox`                   | `!fox`                               | ✔️      |
+|             | lyrics       | Get lyrics to a song                | `null`    | `lyrics <song> [artist]`| `!lyrics november rain`              | ✔️      |
 | Moderation  | kick         | Kick a member from the server       | `null`    | kick <member> [reason]  | `!kick @someone toxic behavior`      | ✖️      |
 |             | ban          | Ban a member from the server        | `null`    | ban <member> [reason]   | `!ban @someone toxic behavior`       | ✖️      |
 |             | prefix       | Show/set the server's prefix        | `null`    | prefix [prefix]         | `!prefix`, `!prefix $`               | ✖️      |
