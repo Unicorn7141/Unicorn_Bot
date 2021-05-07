@@ -15,7 +15,6 @@
 |             | prefix       | Show/set the server's prefix        | `null`      | prefix [prefix]         | `!prefix`, `!prefix $`               | ✖️      |
 |             | unban        | Unban a member from the server      | `null`      | unban <member> [reason] | `!unban @someone you're forgiven`    | ✖️      |
 |             | modmail      | A modmail chat for reports and such | `null`      | `nulll`                 | `null`                               | ✖️      |
-| Utility     | todo         | A todo list                         | `tdl`, `td` | `will be later supplied`| `will be later supplied              | ❔      |
   
   
 - ✔️️ => Done
