@@ -3,6 +3,9 @@ import com.kotlindiscord.kord.extensions.commands.converters.coalescedString
 import com.kotlindiscord.kord.extensions.commands.converters.optionalMember
 import com.kotlindiscord.kord.extensions.commands.parser.Arguments
 import com.kotlindiscord.kord.extensions.extensions.Extension
+import com.kotlindiscord.kord.extensions.pagination.Paginator
+import com.kotlindiscord.kord.extensions.pagination.pages.Page
+import com.kotlindiscord.kord.extensions.pagination.pages.Pages
 import dev.kord.common.Color
 import dev.kord.core.behavior.channel.createEmbed
 import dev.kord.core.behavior.reply
@@ -30,6 +33,12 @@ class FunCommands(bot: ExtensibleBot): Extension(bot) {
         val member by optionalMember("member", "Who would you like to google for?")
         val query by coalescedString("query", "A query to google")
     }
+    class BallArgs: Arguments() {
+        val question by coalescedString("question", "A `yes` or `no` question you want me to answer")
+    }
+    class LyricsArgs: Arguments() {
+        val song by coalescedString("song", "The song you'd like getting lyrics for")
+    }
 
     /* Commands Section */
     override suspend fun setup() {
@@ -43,10 +52,10 @@ class FunCommands(bot: ExtensibleBot): Extension(bot) {
             // Actual command stuff
             action {
                 message.delete()
-                if (!message.mentionsEveryone) {
+                if (!message.mentionedUsers.toList().isNullOrEmpty()) {
                     channel.createMessage(arguments.quote)
                 } else {
-                    channel.createMessage("${message.author?.mention} tried mentioning everyone")
+                    channel.createMessage("${message.author?.mention} tried using a mention")
                 }
             }
         }
@@ -65,8 +74,13 @@ class FunCommands(bot: ExtensibleBot): Extension(bot) {
                 val google = "https://letmegooglethat.com/?q=${arguments.query.replace(" ", "+")}"
                 val author = if (arguments.member == null) message.author else arguments.member
                 channel.createEmbed {
-                    description = "${author?.mention}, Have you tried googling **[${arguments.query}]($google)**?"
-                    color = _color
+                    if (message.mentionedUsers.toList().isNullOrEmpty()) {
+                        description = "${author?.mention}, Have you tried googling **[${arguments.query}]($google)**?"
+                        color = _color
+                    } else {
+                        description = "Don't try mentioning people"
+                        color = Color(java.awt.Color.red.rgb)
+                    }
                 }
             }
         }
@@ -127,6 +141,71 @@ class FunCommands(bot: ExtensibleBot): Extension(bot) {
                 }
             }
         }
+        // 8ball
+        command(::BallArgs) {
+            name = "8ball"
+            aliases = arrayOf("8")
+            description = "Predicting an answer to your questions"
+
+            action {
+                val action = this
+                message.reply {
+                    val answer = listOf(
+                        " As I see it, yes.", " Ask again later.",
+                        " Better not tell you now.", " Cannot predict now.",
+                        " Concentrate and ask again.", " Don’t count on it.",
+                        " It is certain.", " It is decidedly so.",
+                        " Most likely.", " My reply is no.",
+                        " My sources say no.", " Outlook not so good.",
+                        " Outlook good.", " Reply hazy, try again.",
+                        " Signs point to yes.", " Very doubtful.",
+                        " Without a doubt.", " Yes.",
+                        " Yes – definitely.", " You may rely on it."
+                    ).shuffled()[0]
+                    allowedMentions()
+                    content = answer
+                }
+            }
+        }
+        // lyrics
+        command(::LyricsArgs) {
+            name = "lyrics"
+            description = "Get lyrics for songs"
+
+            action {
+                val roles = event.member?.roles?.sorted()?.toList()
+                val _color = roles?.reversed()?.firstOrNull { it.color.rgb != 0 }?.color ?: Color(7506394)
+                val song = callLyricsAPI(client, arguments.song)
+                val pages = Pages()
+                val songLyrics = song["lyrics"]?.split(" ")
+                val lyrics = mutableListOf("")
+                if (songLyrics != null) {
+                    for (word in songLyrics) {
+                        if ((lyrics.last() + " $word").length <= 2000) {
+                            lyrics[lyrics.lastIndex] += " $word"
+                        } else {
+                            lyrics.add(word)
+                        }
+                    }
+                    for (page in lyrics) {
+                        pages.addPage(
+                            Page(
+                                description = page,
+                                title = song["title"],
+                                author = song["author"],
+                                color = _color
+                            )
+                        )
+                    }
+                    Paginator(bot, pages, message.channel, keepEmbed = true).send()
+                } else {
+                    message.reply {
+                        allowedMentions()
+                        content = "Song could not be found"
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -154,4 +233,30 @@ suspend fun callDogAPI(client: HttpClient): String {
     } catch (e: ClientRequestException) {
         "https://apple.co/2RveQ5W"
     }
+}
+
+suspend fun callLyricsAPI(client: HttpClient, song: String): Map<String, String> {
+    return try {
+        val response = client.get<JsonElement>("https://some-random-api.ml/lyrics?title=$song")
+        val title = response.jsonObject["title"]?.jsonPrimitive?.content ?: "Unavailable"
+        val author = response.jsonObject["author"]?.jsonPrimitive?.content ?: "Unavailable"
+        val lyrics = response.jsonObject["lyrics"]?.jsonPrimitive?.content ?: "Unavailable"
+        mapOf("title" to title, "author" to author, "lyrics" to lyrics)
+    } catch (e: ClientRequestException) {
+        mapOf("title" to "Unavailable", "author" to "Unavailable", "lyrics" to "Unavailable")
+
+    }
+}
+
+fun buildPages(words: Collection<String>): ArrayList<String> {
+    val pages = arrayListOf<String>()
+    var builder = StringBuilder()
+    for (word in words) {
+        if (builder.length + word.length >= 2000) {
+            pages.add(builder.toString())
+            builder = StringBuilder()
+        }
+        builder.append(" $word")
+    }
+    return pages
 }

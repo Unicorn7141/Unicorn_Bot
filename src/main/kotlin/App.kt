@@ -1,20 +1,30 @@
 import com.kotlindiscord.kord.extensions.ExtensibleBot
+import dev.kord.gateway.Intents
+import dev.kord.gateway.PrivilegedIntent
 
 val TOKEN = System.getenv("TOKEN") ?: error("Couldn't find a system argument called \'TOKEN\'")
 
+@OptIn(PrivilegedIntent::class)
 suspend fun main() {
+
     val bot = ExtensibleBot(TOKEN) {
-        // Message commands handler
         messageCommands {
             defaultPrefix = "u!"
-            invokeOnMention = true // allow mentioning the bot function as a prefix
+            invokeOnMention = true
+        }
+
+        intents {
+            + Intents.all
+        }
+
+        members {
+            fillPresences = true
+            all()
         }
 
         extensions {
-            help = false
-
-            // adding the extensions containing the commands
-            add(::HelperExtension) // custom help command
+            help = false // disable default help
+            add(::HelperExtension) // help command
             add(::FunCommands) // fun commands
         }
     }

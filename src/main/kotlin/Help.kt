@@ -64,7 +64,6 @@ class HelperExtension(bot: ExtensibleBot) : HelpProvider, Extension(bot) {
             .map { list ->
                 list.map {
                     totalCommands += 1
-
                     formatCommandHelp(prefix, event, it)
                 }
             }
@@ -130,7 +129,8 @@ class HelperExtension(bot: ExtensibleBot) : HelpProvider, Extension(bot) {
             owner = event.message.author,
             timeout = PAGE_TIMEOUT,
             keepEmbed = true,
-            locale = locale
+            locale = locale,
+            pingInReply = false
         )
     }
 
@@ -175,7 +175,6 @@ class HelperExtension(bot: ExtensibleBot) : HelpProvider, Extension(bot) {
             val _color = roles?.reversed()?.firstOrNull { it.color.rgb != 0 }?.color ?: Color(7506394)
             pages.addPage(
                 COMMANDS_GROUP,
-
                 Page(
                     description = "$openingLine\n$desc\n\n$arguments",
 
@@ -196,7 +195,8 @@ class HelperExtension(bot: ExtensibleBot) : HelpProvider, Extension(bot) {
             owner = event.message.author,
             timeout = PAGE_TIMEOUT,
             keepEmbed = true,
-            locale = locale
+            locale = locale,
+            pingInReply = false
         )
     }
 
