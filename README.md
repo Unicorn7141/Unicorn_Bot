@@ -24,10 +24,10 @@ Being completely honest, I don't know that myself....but hopefully something dec
 |             | fox          | Get an adorable fox pic/gif                     | foxy        | `fox`                    | `!fox`                               | ✔️      |
 |             | lyrics       | Get lyrics to a song                            | `null`      | `lyrics <song> [artist]` | `!lyrics november rain`              | ✔️      |
 |             | getlyrics    | Get lyrics to the song you're currently playing | glyrics     | `glyrics`                | `!glyrics`                           | ✔️      |
-| Moderation  | kick         | Kick a member from the server                   | `null`      | kick <member> [reason]   | `!kick @someone toxic behavior`      | ✖️      |
-|             | ban          | Ban a member from the server                    | `null`      | ban <member> [reason]    | `!ban @someone toxic behavior`       | ✖️      |
-|             | prefix       | Show/set the server's prefix                    | `null`      | prefix [prefix]          | `!prefix`, `!prefix $`               | ✖️      |
-|             | unban        | Unban a member from the server                  | `null`      | unban <member> [reason]  | `!unban @someone you're forgiven`    | ✖️      |
+| Moderation  | kick         | Kick a member from the server                   | `null`      | kick <member> [reason]   | `!kick @someone toxic behavior`      | ✔️      |
+|             | ban          | Ban a member from the server                    | `null`      | ban <member> [reason]    | `!ban @someone toxic behavior`       | ✔️      |
+|             | prefix       | Show/set the server's prefix                    | `null`      | prefix [prefix]          | `!prefix`, `!prefix $`               | ✔️      |
+|             | unban        | Unban a member from the server                  | `null`      | unban <member> [reason]  | `!unban @someone you're forgiven`    | ✔️      |
 |             | modmail      | A modmail chat for reports and such             | `null`      | `nulll`                  | `null`                               | ✖️      |
 | Utility     | todo         | A todo list                                     | `tdl`, `td` | `will be later supplied` | `will be later supplied`             | ❔      |
 
