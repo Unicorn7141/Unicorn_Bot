@@ -1,3 +1,4 @@
 /src/main/resources/data.txt
 /.idea/
 /.gradle/
+*.db

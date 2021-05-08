@@ -1,9 +1,11 @@
 import com.kotlindiscord.kord.extensions.ExtensibleBot
 import dev.kord.gateway.Intents
 import dev.kord.gateway.PrivilegedIntent
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.transactions.transaction
 
 val TOKEN = System.getenv("TOKEN") ?: error("Couldn't find a system argument called \'TOKEN\'")
 const val PREFIX = "u!"
@@ -37,15 +39,36 @@ suspend fun main() {
         }
     }
 
+    transaction {
+
+    }
+
+    transaction {
+        addLogger(StdOutSqlLogger)
+        SchemaUtils.create(Server)
+
+        runBlocking {
+            for (guild in bot.kord.guilds.toList()) {
+                val gID = guild.id.asString
+                try {
+                    addGuild(gID)
+                } catch (e: Exception) {
+                    println("[!!] Error: $e")
+                }
+                serverCache[gID] = getPrefix(gID)
+                println("${guild.name} | ${gID} | ${serverCache[gID]}")
+            }
+        }
+    }
+
     bot.start()
 }
 
 // creating caches
 val serverCache = mutableMapOf<String, String>()
 
-// database
+// database + tables
 val database = Database.connect("jdbc:sqlite:file:data.db", "org.sqlite.JDBC")
-val db = database.connector
 object Server: IntIdTable("Servers") {
     val guildId = varchar("gID", 20).uniqueIndex()
     var prefix = varchar("prefix", 10).default(PREFIX)
@@ -53,3 +76,31 @@ object Server: IntIdTable("Servers") {
 
 
 // cache related functions
+// getters
+fun getPrefix(guildId: String): String {
+    return Server.slice(Server.prefix).select { Server.guildId eq guildId }.withDistinct().map {
+        it[Server.prefix]
+    }[0]
+}
+
+// updaters
+fun updatePrefix(guildId: String, prefix: String) {
+    transaction {
+        Server.update({ Server.guildId eq guildId }) {
+            it[Server.prefix] = prefix
+        }
+        serverCache[guildId] = prefix
+    }
+}
+
+// setters
+fun addGuild(ID: String) {
+    transaction {
+        val id = Server.insertAndGetId {
+            it[guildId] = ID
+            it[prefix] = PREFIX
+        }
+        serverCache[ID] = PREFIX
+        commit()
+    }
+}

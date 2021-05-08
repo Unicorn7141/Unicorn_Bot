@@ -1,19 +1,18 @@
 import com.kotlindiscord.kord.extensions.ExtensibleBot
 import com.kotlindiscord.kord.extensions.checks.hasPermission
 import com.kotlindiscord.kord.extensions.checks.or
-import com.kotlindiscord.kord.extensions.commands.converters.coalescedString
-import com.kotlindiscord.kord.extensions.commands.converters.member
-import com.kotlindiscord.kord.extensions.commands.converters.optionalCoalescedString
-import com.kotlindiscord.kord.extensions.commands.converters.user
+import com.kotlindiscord.kord.extensions.commands.converters.*
 import com.kotlindiscord.kord.extensions.commands.parser.Arguments
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.utils.dm
+import com.kotlindiscord.kord.extensions.utils.hasPermission
 import dev.kord.common.Color
 import dev.kord.common.entity.Permission
 import dev.kord.core.behavior.ban
 import dev.kord.core.behavior.channel.createEmbed
 import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.behavior.reply
+import dev.kord.core.sorted
 import dev.kord.rest.Image
 import dev.kord.rest.request.KtorRequestException
 import kotlinx.coroutines.flow.toList
@@ -35,6 +34,10 @@ class ModerationCommands(bot: ExtensibleBot): Extension(bot) {
     class UnbanArgs : Arguments() {
         val member by user("member", "The member to unban")
         val reason by optionalCoalescedString("reason", "The reason to the unbanning")
+    }
+
+    class PrefixArgs : Arguments() {
+        val prefix by optionalString("prefix", "New prefix for the server")
     }
 
     override suspend fun setup() {
@@ -118,7 +121,7 @@ class ModerationCommands(bot: ExtensibleBot): Extension(bot) {
                 }
             }
         }
-
+        // unban
         command(::UnbanArgs) {
             name = "unban"
             description = "Unban a member"
@@ -153,6 +156,42 @@ class ModerationCommands(bot: ExtensibleBot): Extension(bot) {
                     message.reply {
                         allowedMentions()
                         content = "${member.mention} is not banned from this server"
+                    }
+                }
+            }
+        }
+        // prefix
+        command(::PrefixArgs) {
+            name = "prefix"
+            description = "set/view the server's prefix"
+
+            action {
+                val newPrefix = arguments.prefix
+                val roles = event.member?.roles?.sorted()?.toList()
+                val _color = roles?.reversed()?.firstOrNull { it.color.rgb != 0 }?.color ?: Color(7506394)
+
+                if (message.getAuthorAsMember()?.hasPermission(Permission.ManageGuild) == true && newPrefix != null) {
+                    updatePrefix(guild?.id?.asString ?: "", newPrefix).also {
+                        message.reply {
+                            allowedMentions()
+                            embed {
+                                title = "Prefix Changed"
+                                description = "You've successfully changed this guild's prefix!"
+                                field("New Prefix", false) { "`$newPrefix`" }
+                                color = Color(27, 255, 20)
+                                thumbnail { url = guild?.getIconUrl(Image.Format.PNG) ?: "" }
+                            }
+                        }
+                    }
+                } else {
+                    message.reply {
+                        allowedMentions()
+                        embed {
+                            title = "Server Prefix"
+                            description = "This server's prefix is `${serverCache[guild?.id?.asString]}`"
+                            color = _color
+                            thumbnail { url = guild?.getIconUrl(Image.Format.PNG) ?: "" }
+                        }
                     }
                 }
             }
