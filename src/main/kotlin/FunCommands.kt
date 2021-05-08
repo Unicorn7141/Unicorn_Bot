@@ -186,36 +186,29 @@ class FunCommands(bot: ExtensibleBot): Extension(bot) {
             action {
                 val roles = event.member?.roles?.sorted()?.toList()
                 val _color = roles?.reversed()?.firstOrNull { it.color.rgb != 0 }?.color ?: Color(7506394)
-                val song = callLyricsAPI(client, arguments.song)
-                val pages = Pages()
-                val songLyrics = song["lyrics"]?.split(" ")?.chunked(100)?.map { it.joinToString(" ") }
-                val lyrics = mutableListOf("")
                 try {
-                    if (songLyrics != null) {
-                        for (word in songLyrics) {
-                            if ((lyrics.last() + word).length <= 2000) {
-                                lyrics[lyrics.lastIndex] += " $word\n\n"
-                            } else {
-                                lyrics.add("\n\n$word")
-                            }
-                        }
-                        for (page in lyrics.joinToString("\n\n|").split("|")) {
-                            pages.addPage(
-                                Page(
-                                    description = page,
-                                    title = song["title"],
-                                    author = song["author"],
-                                    color = _color
-                                )
-                            )
-                        }
-                        Paginator(bot, pages, message.channel, keepEmbed = true).send()
-                    } else {
-                        message.reply {
-                            allowedMentions()
-                            content = "Song could not be found"
+                    val song = callLyricsAPI(client, arguments.song)
+                    val pages = Pages()
+                    val songLyrics = song["lyrics"]?.split(" ") ?: listOf("Unavailable")
+                    val lyrics = mutableListOf("")
+                    for (word in songLyrics) {
+                        if ((lyrics.last() + word).length <= 2000) {
+                            lyrics[lyrics.lastIndex] += " $word"
+                        } else {
+                            lyrics.add(word)
                         }
                     }
+                    for (page in lyrics) {
+                        pages.addPage(
+                            Page(
+                                description = page,
+                                title = song["title"],
+                                author = song["author"],
+                                color = _color
+                            )
+                        )
+                    }
+                    Paginator(bot, pages, message.channel, keepEmbed = true).send()
                 } catch (e: Exception) {
                     when (e) {
                         is ServerResponseException -> {
@@ -225,7 +218,6 @@ class FunCommands(bot: ExtensibleBot): Extension(bot) {
                             }
                         }
                         is KtorRequestException -> {
-                            println(lyrics.map { it.length }.joinToString(" | "))
                             message.reply {
                                 allowedMentions()
                                 content = "A formatting error occurred...."
@@ -246,36 +238,29 @@ class FunCommands(bot: ExtensibleBot): Extension(bot) {
                 if (playingSong != null) {
                     val roles = event.member?.roles?.sorted()?.toList()
                     val _color = roles?.reversed()?.firstOrNull { it.color.rgb != 0 }?.color ?: Color(7506394)
-                    val song = callLyricsAPI(client, playingSong)
-                    val pages = Pages()
-                    val songLyrics = song["lyrics"]?.split(" ")?.chunked(100)?.map { it.joinToString(" ") }
-                    val lyrics = mutableListOf("")
                     try {
-                        if (songLyrics != null) {
-                            for (word in songLyrics) {
-                                if ((lyrics.last() + word).length <= 2000) {
-                                    lyrics[lyrics.lastIndex] += " $word\n\n"
-                                } else {
-                                    lyrics.add("\n\n$word")
-                                }
-                            }
-                            for (page in lyrics.joinToString("\n\n|").split("|")) {
-                                pages.addPage(
-                                    Page(
-                                        description = page,
-                                        title = song["title"],
-                                        author = song["author"],
-                                        color = _color
-                                    )
-                                )
-                            }
-                            Paginator(bot, pages, message.channel, keepEmbed = true).send()
-                        } else {
-                            message.reply {
-                                allowedMentions()
-                                content = "Song could not be found"
+                        val song = callLyricsAPI(client, playingSong)
+                        val pages = Pages()
+                        val songLyrics = song["lyrics"]?.split(" ") ?: listOf("Unavailable")
+                        val lyrics = mutableListOf("")
+                        for (word in songLyrics) {
+                            if ((lyrics.last() + word).length <= 2000) {
+                                lyrics[lyrics.lastIndex] += " $word"
+                            } else {
+                                lyrics.add(word)
                             }
                         }
+                        for (page in lyrics) {
+                            pages.addPage(
+                                Page(
+                                    description = page,
+                                    title = song["title"],
+                                    author = song["author"],
+                                    color = _color
+                                )
+                            )
+                        }
+                        Paginator(bot, pages, message.channel, keepEmbed = true).send()
                     } catch (e: Exception) {
                         when (e) {
                             is ServerResponseException -> {
@@ -285,7 +270,6 @@ class FunCommands(bot: ExtensibleBot): Extension(bot) {
                                 }
                             }
                             is KtorRequestException -> {
-                                println(lyrics.map { it.length }.joinToString(" | "))
                                 message.reply {
                                     allowedMentions()
                                     content = "A formatting error occurred...."
@@ -357,9 +341,19 @@ fun buildPages(words: Collection<String>): ArrayList<String> {
 }
 
 suspend fun getSong(member: Member): String? {
-    return if (member.getPresenceOrNull()?.data?.activities?.map { it.party.value?.id?.value }.toString() == "[spotify:${member.id.asString}") {
-        member.getPresenceOrNull()?.data?.activities?.joinToString("\n") { "${it.details.value} ${it.state.value}" }
-    } else {
-        null
+    try {
+        return if (member.getPresenceOrNull()?.data?.activities?.map { it.party.value?.id?.value }
+                .toString() == "[spotify:${member.id.asString}]") {
+            val song = member.getPresenceOrNull()?.data?.activities?.joinToString("\n") { "${it.details.value} ${it.state.value}" }
+            song?.split(" ")?.joinToString(" ") { if (it.toLowerCase() != "f*ck") it else "Fuck" }
+        } else {
+            null
+        }
+    } catch (e: Exception) {
+        when (e) {
+            is KtorRequestException -> return "Lyrics to this song aren't available"
+        }
     }
+
+    return "Song not found"
 }
